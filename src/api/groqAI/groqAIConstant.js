@@ -1,0 +1,1 @@
+export const GROQ_ERROR_MESSAGE = "I'm sorry, I couldn't understand what you're trying to say. Could you please elaborate?"
