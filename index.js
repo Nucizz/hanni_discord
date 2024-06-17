@@ -1,7 +1,7 @@
 import Discord from 'discord.js';
 import { config as envConfig } from "dotenv";
 import { Intents } from './src/constants/intents.js';
-import { handleMessage } from './src/handler/messageHandler.js';
+import { messageRouter } from './src/router/messageRouter.js';
 import { HANNI_USER_ID } from './src/constants/hanni.js';
 
 
@@ -30,7 +30,7 @@ client.on("ready", () => {
 
 client.on("messageCreate", (msg) => {
     if (msg.author.id !== HANNI_USER_ID) {
-        handleMessage(msg);
+        messageRouter(msg);
         messageHandledCount++;
     }
 });
