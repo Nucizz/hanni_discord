@@ -63,7 +63,7 @@ async function getChatCompletion(conversationArray) {
     messages: conversationArray.value,
     model: "llama3-8b-8192",
     temperature: 0.3,
-    max_tokens: 512
+    max_tokens: 2048
   });
 
   conversationArray.value.push({
