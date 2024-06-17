@@ -22,7 +22,7 @@ export async function groqSendChat(author, content, history) {
 
   history.value.push({
     role: "user",
-    content: `${author} said ${content}`
+    content: `${author}: ${content}`
   });
 
   try {

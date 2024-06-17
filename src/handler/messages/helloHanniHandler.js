@@ -15,7 +15,7 @@ export function handleHelloHanni(msg) {
         helloHanniConversation.value = []
         clearChannel(msg.channel).then(() => { return });
     } else {
-        return groqSendChat(msg.author.username, msg.content, helloHanniConversation).then((replyContent) => {
+        return groqSendChat(msg.author.globalName, msg.content, helloHanniConversation).then((replyContent) => {
             msg.reply(replyContent);
         });
     }
