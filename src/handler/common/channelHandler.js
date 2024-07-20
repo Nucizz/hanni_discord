@@ -1,4 +1,9 @@
 export async function clearChannel(channel) {
-    const fetched = await channel.messages.fetch({limit: 99});
-    channel.bulkDelete(fetched);
+    let fetched;
+    do {
+        fetched = await channel.messages.fetch({ limit: 99 });
+        if (fetched.size > 0) {
+            await channel.bulkDelete(fetched, true);
+        }
+    } while (fetched.size >= 99);
 }

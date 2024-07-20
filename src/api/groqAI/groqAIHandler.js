@@ -4,6 +4,7 @@ import pdfParse from "pdf-parse";
 import Tesseract from "tesseract.js";
 import { config as envConfig } from "dotenv";
 import { getChatStartPrompt } from "./groqAIPrompt.js";
+import { Buffer } from 'buffer';
 
 
 // MARK: Setup Helper
@@ -17,17 +18,13 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // MARK: GroqAI Functions
 
-export async function groqSendChat(author, content, attachments, history) {
-  if (history.length === 0) {
-    history.value = getChatStartPrompt();
+export async function groqSendChat(author, content, attachments, history, guildName) {
+  if (history.value.length === 0) {
+    history.value = getChatStartPrompt(guildName);
   }
 
   var query = `${author}: ${content}`;
-  const attachmentData = await extractAttachments(attachments);
-
-  if (attachmentData && attachmentData.length > 0) {
-    query += ` Attachments: ${attachmentData}`
-  }
+  query += await extractAttachments(attachments);
 
   history.value.push({
     role: "user",
@@ -38,23 +35,9 @@ export async function groqSendChat(author, content, attachments, history) {
     const result = await getChatCompletion(history);
     return result || GROQ_ERROR_MESSAGE;
   } catch (error) {
-    console.log(`[ERROR][GROQ] ${error}`);
-    return `[FAILED TO GENERATE] ${error.message}`;
+    return handleGroqError(error);
   }
 }
-
-export async function groqNewChat(history) {
-  history.value = getChatStartPrompt();
-
-  try {
-    const result = await getChatCompletion(history);
-    return result || GROQ_ERROR_MESSAGE;
-  } catch (error) {
-    console.log(`[ERROR][GROQ] ${error}`);
-    return `[FAILED TO GENERATE] ${error.message}`;
-  }
-}
-
 
 // MARK: GroqAI Helpers
 
@@ -75,8 +58,11 @@ async function getChatCompletion(conversationArray) {
 }
 
 async function extractAttachments(attachments) {
-  let attachmentTexts = [];
+  if (!attachments) {
+    return '';
+  }
 
+  let attachmentTexts = [];  
   for (const attachment of attachments) {
     try {
       const url = attachment[1].url;
@@ -88,10 +74,13 @@ async function extractAttachments(attachments) {
 
       if (response.headers['content-type'] === 'application/pdf') {
         const pdfText = await extractTextFromPDF(response.data);
-        attachmentTexts.push(pdfText);
+        attachmentTexts.push(`PDF: ${pdfText}`);
       } else if (response.headers['content-type'].startsWith('image/')) {
         const imageText = await extractTextFromImage(response.data);
-        attachmentTexts.push(imageText);
+        attachmentTexts.push(`Image: ${imageText}`);
+      } else if (response.headers['content-type'].startsWith('text/plain')) {
+        const textText = await extractTextFromText(response.data);
+        attachmentTexts.push(`Text: ${textText}`);
       } else {
         attachmentTexts.push(`[Unsupported attachment type: ${response.headers['content-type']}]`);
       }
@@ -100,7 +89,7 @@ async function extractAttachments(attachments) {
     }
   }
 
-  return attachmentTexts.join('\n');
+  return `Attachments data: ${attachmentTexts.join('\n')}`;
 }
 
 async function extractTextFromPDF(pdfBuffer) {
@@ -121,4 +110,19 @@ async function extractTextFromImage(imageBuffer) {
     console.error(`[ERROR][TESSERACT] ${error}`);
     return "[Failed to extract text from image]";
   }
+}
+
+async function extractTextFromText(textBuffer) {
+  try {
+    const text = Buffer.from(textBuffer).toString('utf-8');
+    return text;
+  } catch (error) {
+    console.error(`[ERROR][TEXT_EXTRACTION] ${error}`);
+    return "[Failed to extract text from .txt file]";
+  }
+}
+
+function handleGroqError(raw) {
+  console.log(`[ERROR][GROQ] ${raw}`);
+  return raw.error.error.message;
 }
