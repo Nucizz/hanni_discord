@@ -16,12 +16,17 @@ envConfig();
 
 // MARK: Setup Discord Bot Client
 
-const client = new Discord.Client({
+export const client = new Discord.Client({
     intents: Intents
 });
 
 
 // MARK: Discord Bot Functions
+
+process.on('unhandledRejection', error => {
+    console.clear();
+	console.error('[ERROR]', error.message);
+});
 
 client.on("ready", () => {
     console.clear();
@@ -32,6 +37,7 @@ client.on("messageCreate", (msg) => {
     if (msg.author.id !== HANNI_USER_ID) {
         messageRouter(msg);
         messageHandledCount++;
+        console.log(`[LOG][MSG] Responds to ${msg.author.username}`)
     }
 });
 

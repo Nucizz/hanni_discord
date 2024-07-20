@@ -33,7 +33,7 @@ export async function groqSendChat(author, content, attachments, history, guildN
 
   try {
     const result = await getChatCompletion(history);
-    return result || GROQ_ERROR_MESSAGE;
+    return result || "Sorry I don't understand.";
   } catch (error) {
     return handleGroqError(error);
   }
@@ -124,5 +124,5 @@ async function extractTextFromText(textBuffer) {
 
 function handleGroqError(raw) {
   console.log(`[ERROR][GROQ] ${raw}`);
-  return raw.error.error.message;
+  return "Ouch, I was killed with an error of " + raw;
 }

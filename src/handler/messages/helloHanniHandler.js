@@ -1,9 +1,11 @@
 import { groqSendChat } from "../../api/groqAI/groqAIHandler.js";
-import { helloHanniConversation, helloHanniPrivateConversation, mircaleConversation } from "../../api/groqAI/groqAIPrompt.js";
+import { helloHanniConversation, helloHanniPrivateConversation, miracleConversation } from "../../api/groqAI/groqAIPrompt.js";
 import { CODE_JEANS_SERVER, isAdminById } from "../../constants/codeJeans.js";
-import { EXTERNAL_CHANNEL } from "../../constants/externalCommunity.js";
+import { EXTERNAL_SERVER } from "../../constants/externalCommunity.js";
+import { isPlayCommand } from "../../constants/spotify.js";
 import { clearChannel } from "../common/channelHandler.js";
 import { handleReply, handleSend } from "../common/messageHandler.js";
+import { playPlaylist } from "./musicBotHandler.js";
 
 
 // MARK: CodeJeans
@@ -24,30 +26,36 @@ function getConversationList(isPrivate) {
 
 
 // MARK: External
+
 export function handleExternalHelloHanni(msg) {
+    const guild = getExternalGuildId(msg.guild.id);
     if (msg.content.startsWith("hanni --") && isAdminById(msg.author.id)) {
-        handleCommand(msg, getExternalConversationList(msg.channel.id), getExternalServerName(msg.channel.id));
+        handleCommand(msg, getExternalConversationList(guild), guild.name);
     } else {
-        groqSendChat(msg.author.globalName, msg.content, msg.attachments, getExternalConversationList(msg.channel.id), getExternalServerName(msg.channel.id)).then((replyContent) => {
-            handleReply(msg, replyContent);
+        groqSendChat(msg.author.globalName, msg.content, msg.attachments, getExternalConversationList(guild), guild.name).then((replyContent) => {
+            if (isPlayCommand(replyContent)) {
+                playPlaylist(guild.name, replyContent, msg);
+            } else {
+                handleReply(msg, replyContent);
+            }
         });
     } 
 }
 
-function getExternalConversationList(channelId) {
-    switch (channelId) {
-        case EXTERNAL_CHANNEL.get('miracle.hello-hanni').id:
-            return mircaleConversation
+function getExternalGuildId(guildId) {
+    switch (guildId) {
+        case EXTERNAL_SERVER.get('miracle').id:
+            return EXTERNAL_SERVER.get('miracle')
     
         default:
             return null
     }
 }
 
-function getExternalServerName(channelId) {
-    switch (channelId) {
-        case EXTERNAL_CHANNEL.get('miracle.hello-hanni').id:
-            return EXTERNAL_CHANNEL.get('miracle.hello-hanni').name
+function getExternalConversationList(guild) {
+    switch (guild) {
+        case EXTERNAL_SERVER.get('miracle'):
+            return miracleConversation
     
         default:
             return null

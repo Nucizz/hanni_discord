@@ -1,3 +1,5 @@
+import { SpotifyPlaylist } from "../../constants/spotify.js";
+
 const CHAT_START_PROMPT = [
     "You are Hanni, a helpful assistant designed to address any questions or needs your friends may have.",
     "You are currently in the Discord server called {{serverName}}, where you interact with multiple users.",
@@ -51,15 +53,16 @@ const CHAT_INFORMATIONS_PROMPT = [
     "Understand the type of playlist the user is looking for. Only suggest playlists relevant to their request and avoid overwhelming them with the entire list unless specifically requested.",
     "When sharing a playlist, ensure that you include the link so the user can easily access it.",
     "Include the following credit information: 'Follow pinbensin on Spotify at https://sptfy.com/pinbensin for more amazing playlists.'",
-    "   a. 'untitled¿' - For trending songs, especially those popular on TikTok: https://open.spotify.com/playlist/2SGo6XCC93tDz999hFABhB?si=0bdb8f21288b4297",
-    "   b. 'k-puppies♥' - For upbeat K-pop, featuring girl groups and boy groups like NewJeans, BlackPink, and BTS: https://open.spotify.com/playlist/3TpZo0GwxZvfSRmm4WFh9f?si=0ffd71e6b3aa4ea1",
-    "   c. 'bibimbap.' - For ballad K-pop and K-drama OSTs, including artists like IU, Punch, and Taeyeon: https://open.spotify.com/playlist/2lsXLPthbEL4ccLKnzvhaM?si=4537c2409e824173",
-    "   d. 'nusantara.' - For Indonesian songs: https://open.spotify.com/playlist/65KxXUyN9hAFZ4X9q5imGe?si=c0876219b6da465f",
-    "   e. 'metroo!.' - For hip hop and rap tracks featuring artists like Lil Uzi Vert, Eminem, and Kanye West: https://open.spotify.com/playlist/4azw2gKcHtj1xL9h4G6wrm?si=4d9ef159494f44ec",
-    "   f. 'starboy✰' - For a dark and cool vibe, featuring artists like The Weeknd and Drake: https://open.spotify.com/playlist/10STU5ZzzaMLe45KH9VBHe?si=b5b1d46a8e1f4799",
-    "   g. 'elevated✈' - For RnB/Soul and relaxing vibes, including artists like Daniel Caesar: https://open.spotify.com/playlist/0NeI83yroGuDJLt0fCinKV?si=3e5fbaf0c80e48b2",
-    "   h. 'xoxos❀' - For modern RnB and alternative tracks, featuring artists like keshi and schld: https://open.spotify.com/playlist/0uMFfBYyC19vC6u0oxc3N0?si=b4c457a31b6a46ea",
-    "   i. 'llabasel⛄' - For slow jazz-pop vibes, featuring artists like Frank Sinatra and Michael Bublé: https://open.spotify.com/playlist/0TEUdYTmgMXCdM21AHSMBN?si=ef3ded6b20654f35"
+    "   a. " + SpotifyPlaylist[0],
+    "   b. " + SpotifyPlaylist[1],
+    "   c. " + SpotifyPlaylist[2],
+    "   d. " + SpotifyPlaylist[3],
+    "   e. " + SpotifyPlaylist[4],
+    "   f. " + SpotifyPlaylist[5],
+    "   g. " + SpotifyPlaylist[6],
+    "   h. " + SpotifyPlaylist[7],
+    "   i. " + SpotifyPlaylist[8],
+    "If user asks you to play it, send 'm!p [LINK OF THE PLAYLIST]'. Don't add aditional text other than the command when sending it so the logic can be detected."
 ];
 
 const CHAT_JOKES_PROMPT = [
@@ -113,4 +116,4 @@ export const helloHanniPrivateConversation = {value: []};
 export const helloHanniConversation = {value: []};
 
 // External
-export const mircaleConversation = {value: []};
+export const miracleConversation = {value: []};

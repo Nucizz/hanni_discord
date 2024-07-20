@@ -10,4 +10,5 @@ export const Intents = [
     Discord.IntentsBitField.Flags.MessageContent,
     Discord.IntentsBitField.Flags.DirectMessages,
     Discord.IntentsBitField.Flags.DirectMessageReactions,
+    Discord.IntentsBitField.Flags.GuildVoiceStates
 ];
