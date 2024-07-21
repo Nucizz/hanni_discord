@@ -16,6 +16,7 @@ envConfig();
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+
 // MARK: GroqAI Functions
 
 export async function groqSendChat(author, content, attachments, history, guildName) {
@@ -38,6 +39,7 @@ export async function groqSendChat(author, content, attachments, history, guildN
     return handleGroqError(error);
   }
 }
+
 
 // MARK: GroqAI Helpers
 

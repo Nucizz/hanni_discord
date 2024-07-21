@@ -8,8 +8,4 @@ export const SpotifyPlaylist = [
     "'elevated✈' - For RnB/Soul and relaxing vibes, including artists like Daniel Caesar: https://open.spotify.com/playlist/0NeI83yroGuDJLt0fCinKV?si=3e5fbaf0c80e48b2",
     "'xoxos❀' - For modern RnB and alternative tracks, featuring artists like keshi and schld: https://open.spotify.com/playlist/0uMFfBYyC19vC6u0oxc3N0?si=b4c457a31b6a46ea",
     "'llabasel⛄' - For slow jazz-pop vibes, featuring artists like Frank Sinatra and Michael Bublé: https://open.spotify.com/playlist/0TEUdYTmgMXCdM21AHSMBN?si=ef3ded6b20654f35"
-]
-
-export function isPlayCommand(response) {
-    return response.startsWith("m!p ")
-}
+];

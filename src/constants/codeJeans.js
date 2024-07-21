@@ -14,13 +14,16 @@ export const CODE_JEANS_CATEGORY = new Map([
 export const CODE_JEANS_CHANNEL = new Map([
     ['hello-hanni-private', '1252175596780392469'],
     ['hello-hanni', '1252239305808810065'],
-    ['text-chat', '1251934901780086831']
+    ['text-chat', '1251934901780086831'],
+    ['bot-command', '1264568575205834855']
 ]);
 
 export const CODE_JEANS_FOUNDER = new Map([
     ['Nuciz', '938462551321243798'],
     ['Rico', '567349433843449887']
-])
+]);
+
+export const CODE_JEANS_MUSIC_COMMAND_PREFIX = "-play";
 
 export function isAdminById(id) {
     for (let value of CODE_JEANS_FOUNDER.values()) {

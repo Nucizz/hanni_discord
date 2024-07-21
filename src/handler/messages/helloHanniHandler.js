@@ -2,10 +2,9 @@ import { groqSendChat } from "../../api/groqAI/groqAIHandler.js";
 import { helloHanniConversation, helloHanniPrivateConversation, miracleConversation } from "../../api/groqAI/groqAIPrompt.js";
 import { CODE_JEANS_SERVER, isAdminById } from "../../constants/codeJeans.js";
 import { EXTERNAL_SERVER } from "../../constants/externalCommunity.js";
-import { isPlayCommand } from "../../constants/spotify.js";
 import { clearChannel } from "../common/channelHandler.js";
 import { handleReply, handleSend } from "../common/messageHandler.js";
-import { playPlaylist } from "./musicBotHandler.js";
+import { handleMusicBotCommand, isPlayCommand } from "./musicBotHandler.js";
 
 
 // MARK: CodeJeans
@@ -14,8 +13,12 @@ export function handleHelloHanni(msg, isPrivate = false) {
     if (msg.content.startsWith("hanni --") && isAdminById(msg.author.id) && msg.guild.id === CODE_JEANS_SERVER) {
         handleCommand(msg, getConversationList(isPrivate, false));
     } else {
-        groqSendChat(msg.author.globalName, msg.content, msg.attachments, getConversationList(isPrivate)).then((replyContent) => {
-            handleReply(msg, replyContent);
+        groqSendChat(msg.author.globalName, msg.content, msg.attachments, getConversationList(isPrivate), "CodeJeans").then((replyContent) => {
+            if (isPlayCommand(replyContent)) {
+                handleMusicBotCommand(replyContent, msg);
+            } else {
+                handleReply(msg, replyContent);
+            }
         });
     } 
 }
@@ -34,7 +37,7 @@ export function handleExternalHelloHanni(msg) {
     } else {
         groqSendChat(msg.author.globalName, msg.content, msg.attachments, getExternalConversationList(guild), guild.name).then((replyContent) => {
             if (isPlayCommand(replyContent)) {
-                playPlaylist(guild.name, replyContent, msg);
+                handleMusicBotCommand(replyContent, msg);
             } else {
                 handleReply(msg, replyContent);
             }
@@ -71,7 +74,7 @@ function handleCommand(msg, conversation, guildName = 'CodeJeans') {
             conversation.value = [];
             clearChannel(msg.channel)
                 .then(() => {
-                    return groqSendChat(msg.author.globalName, null, null, conversation, guildName)
+                    return groqSendChat(msg.author.globalName, null, null, conversation, guildName);
                 })
                 .then((replyContent) => {
                     handleSend(msg, replyContent);

@@ -3,9 +3,11 @@ import { config as envConfig } from "dotenv";
 import { Intents } from './src/constants/intents.js';
 import { messageRouter } from './src/router/messageRouter.js';
 import { HANNI_USER_ID } from './src/constants/hanni.js';
+import { generateDependencyReport } from '@discordjs/voice';
 
 
 // MARK: Runtime Variable
+
 var messageHandledCount = 0;
 
 
@@ -14,7 +16,7 @@ var messageHandledCount = 0;
 envConfig();
 
 
-// MARK: Setup Discord Bot Client
+// MARK: Setup Client
 
 export const client = new Discord.Client({
     intents: Intents
@@ -30,15 +32,16 @@ process.on('unhandledRejection', error => {
 
 client.on("ready", () => {
     console.clear();
+    console.log(generateDependencyReport());
     console.log(`[START] ${client.user.tag} is now online.`);
 });
 
 client.on("messageCreate", (msg) => {
-    if (msg.author.id !== HANNI_USER_ID) {
+    if (msg.author.id !== HANNI_USER_ID && !msg.author.bot) {
         messageRouter(msg);
         messageHandledCount++;
         console.log(`[LOG][MSG] Responds to ${msg.author.username}`)
     }
 });
 
-client.login(process.env.DISCORD_TOKEN)
+client.login(process.env.DISCORD_TOKEN);

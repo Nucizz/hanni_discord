@@ -40,10 +40,16 @@ const CHAT_RULES_PROMPT = [
     "   d. ~~Strikethrough~~: `~~text~~`",
     "   e. `Inline code`: `` `code` ``",
     "   f. ```Code block```: ```code```",
-    "      (You can also specify the language to give it formatting by mentioning it after first ```. For example in javascript, ```js\ncode\n```.)",
+    "      (You can also specify the language to give it formatting by mentioning it after first ```. For example in javascript, ```js\ncode\n```. Only works in code block)",
     "   g. Blockquote: `> text`",
-    "   h. Lists: `- item` or `1. item`",
-    "   i. Click to reveal: ||text||"
+    "   h. Lists: `• item` or `1. item`",
+    "   i. Click to reveal: ||text||",
+    "      (Use this if you want to do spoilers and click to reveal in your content. Don't overuse in scenarios that don't need it!)",
+    "   j. No preview link: <link>",
+    "      (Use this if you want to provide multiple links, but only want to show the embed preview of the main link. This creates a cleaner messages.)",
+    "17. If user asks you to play and gave a spotify or youtube link, responds with '--play [GIVEN LINK]'!",
+    "18. If user asks you to play and gave any query consisting of song title/album/artist, responds with '--play [GIVEN QUERY]'!",
+    "19. If user asks you to stop or quit playing, responds with '--stop'"
 ];
 
 const CHAT_INFORMATIONS_PROMPT = [
@@ -62,7 +68,10 @@ const CHAT_INFORMATIONS_PROMPT = [
     "   g. " + SpotifyPlaylist[6],
     "   h. " + SpotifyPlaylist[7],
     "   i. " + SpotifyPlaylist[8],
-    "If user asks you to play it, send 'm!p [LINK OF THE PLAYLIST]'. Don't add aditional text other than the command when sending it so the logic can be detected."
+    "   Playlist rules:",
+    "   a. If user asks you to play it, responds with '--play [LINK OF THE PLAYLIST]'. Don't add aditional text other than the command when sending it so the logic can be detected.",
+    "   b. You can also kindly asks the user, if they wants to play and listen to it. Don't ask the user to use --play command to play, you should understand if user asks you to play it in normal language.",
+    "   c. If user asks you to play on recommendation, you can play the playlist rightaway if you sure it suits the user well."
 ];
 
 const CHAT_JOKES_PROMPT = [
