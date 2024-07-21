@@ -32,10 +32,15 @@ export function handleMusicBotCommand(command, msg) {
 }
 
 function playQueue(url, msg, voiceChannel) {
-    handleReply(msg, "Hold up while I'm looking for your songs, gonna start playing when I'm ready!");
+    let waitTimeout = setTimeout(() => {
+        handleReply(msg, "Hold up while I'm looking for your songs, gonna start playing when I'm ready!");
+    }, 5000);
+    console.log("Loading music from", url);
 
     queueByType(url)
         .then(async (queue) => {
+            clearTimeout(waitTimeout);
+
             if (!queue || queue.length <= 0) {
                 handleReply("Oops, couldn't find what you wanted :(");
                 return;
@@ -79,6 +84,11 @@ function playQueue(url, msg, voiceChannel) {
                 handleReply(msg, "Ouch, I can't sing no more!");
                 cleanup();
             }
+        })
+        .catch(error => {
+            console.error(`[MUSIC][GENERATE] ${error}`);
+            handleReply(msg, "Ouch, I can't find the song you ask for!");
+            cleanup();
         });
 }
 
@@ -113,7 +123,7 @@ async function generateSpotifyAudio(url) {
         audioStream.end(trackData.audioBuffer);
         return audioStream;
     } catch {
-        return null
+        return null;
     }
 }
 
@@ -144,16 +154,19 @@ async function queueByType(url) {
     const youtubeVideoRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)[^&=%\?]{11}/;
     const spotifySongRegex = /^(https?:\/\/)?(open\.)?spotify\.com\/track\/[a-zA-Z0-9]+(?:\?si=[a-zA-Z0-9]+)?$/;
     const spotifyPlaylistRegex = /^(https?:\/\/)?(open\.)?spotify\.com\/playlist\/[a-zA-Z0-9]+(?:\?si=[a-zA-Z0-9]+)?$/;
+    let audioStream = null;
 
     if (youtubeVideoRegex.test(url)) {
-        return [generateYoutubeAudio(url)];
+        audioStream = generateYoutubeAudio(url);
     } else if (spotifySongRegex.test(url)) {
-        return [await generateSpotifyAudio(url)];
+        audioStream = await generateSpotifyAudio(url);
     } else if (spotifyPlaylistRegex.test(url)) {
         return await generateSpotifyPlaylist(url);
     } else { // TEXT
-        return [await generateSpotifyAudio(url)];
+        audioStream = await generateSpotifyAudio(url);
     }
+
+    return audioStream ? [audioStream] : [];   
 }
 
 function cleanup() {
