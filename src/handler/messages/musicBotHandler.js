@@ -61,7 +61,7 @@ function playQueue(url, msg, voiceChannel) {
     
             try {
                 await entersState(currentConnection, VoiceConnectionStatus.Ready, 30e3);
-                handleReply(msg, "Playing now!");
+                handleReply(msg, `Playing ${url} now!`);
 
                 currentPlayer = createAudioPlayer();
                 currentConnection.subscribe(currentPlayer);
@@ -185,7 +185,7 @@ function extractCommand(response) {
     const prefixes = ["--play", "--stop"];
     
     const escapedPrefixes = prefixes.map(prefix => prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    const commandRegex = new RegExp(`(${escapedPrefixes.join('|')})\\s(.+?)\\s*(?=\n|$)`, 'i');
+    const commandRegex = new RegExp(`(${escapedPrefixes.join('|')})\\s(.+?)(?=\\n|\`|$)`, 'i');
 
     const match = response.match(commandRegex);
     if (match) {
