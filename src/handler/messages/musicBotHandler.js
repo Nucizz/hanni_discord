@@ -1,7 +1,7 @@
 import ytdl from "@distube/ytdl-core";
 import { handleReply } from "../common/messageHandler.js";
 import { PassThrough } from 'stream';
-import { downloadTrack2, downloadAlbum2, } from '@nechlophomeriaa/spotifydl';
+import { downloadTrack, downloadAlbum, } from '@nechlophomeriaa/spotifydl';
 import { joinVoiceChannel, VoiceConnectionStatus, entersState, createAudioPlayer, createAudioResource, AudioPlayerStatus } from '@discordjs/voice';
 
 
@@ -14,13 +14,14 @@ let currentPlayer = null;
 // MARK: Method
 
 export function isPlayCommand(response) {
-    return response.startsWith("--play") || response.startsWith("--stop");
+    return response.includes("--play") || response.includes("--stop");
 }
 
 export function handleMusicBotCommand(command, msg) {
     const voiceChannel = msg.member.voice.channel;
+    command = extractCommand(command);
 
-    if (voiceChannel) {
+    if (voiceChannel && command) {
         if (command.startsWith("--play")) {
             playQueue(command.replace(/--play /g, ""), msg, voiceChannel);
         } else if (command.startsWith("--stop")) {
@@ -115,7 +116,7 @@ function generateYoutubeAudio(url) {
 
 async function generateSpotifyAudio(url) {
     try {
-        const trackData = await downloadTrack2(url);
+        const trackData = await downloadTrack(url);
         if (!trackData || !trackData.audioBuffer) {
             return null;
         }
@@ -129,7 +130,7 @@ async function generateSpotifyAudio(url) {
 
 async function generateSpotifyPlaylist(url) {
     try {
-        const albumData = await downloadAlbum2(url);
+        const albumData = await downloadAlbum(url);
         if (!albumData || !albumData.trackList) {
             return [];
         }
@@ -178,4 +179,17 @@ function cleanup() {
         currentConnection.destroy();
         currentConnection = null;
     }
+}
+
+function extractCommand(response) {
+    const prefixes = ["--play", "--stop"];
+    
+    const escapedPrefixes = prefixes.map(prefix => prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const commandRegex = new RegExp(`(${escapedPrefixes.join('|')})\\s(.+?)\\s*(?=\n|$)`, 'i');
+
+    const match = response.match(commandRegex);
+    if (match) {
+        return `${match[1].trim()} ${match[2].trim()}`;
+    }
+    return null;
 }
