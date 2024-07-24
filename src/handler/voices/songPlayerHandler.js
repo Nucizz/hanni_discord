@@ -102,16 +102,10 @@ function handleSongStop(guildId) {
 function handleSongSkip(guildId) {
     const data = voiceSongData.find(guild => guild.id === guildId);
     if (data) {
-        data.queueList.shift();
-
         if (data.player && data.player.state.status === AudioPlayerStatus.Playing) {
             data.player.stop();
         }
 
-        if (data.queueList.length > 0) {
-            playNextSong(data);
-        }
-        
         return "Succesfully skipped current playing song!"
     }
 
