@@ -1,4 +1,4 @@
-import { log } from "../../helper/logger.js";
+import { log } from "../../helper/loggerHelper.js";
 import { groqClient } from "./groqAIConfig.js";
 
 
@@ -11,7 +11,7 @@ export const GROQ_RESPONSE_ROLE = {
 
 
 // MARK: Handler
-export async function sendGroqChat(conversation, guildName) {
+export async function sendGroqChat(conversation) {
     try {
         const result = await getGroqCompletion(conversation);
         return result;
@@ -58,6 +58,8 @@ function convertConversationToGroqResponse(conversation) {
         }
     });
 
-    log(["GROQ"], `Conversation converted with ${convertFailure} failure.`);
+    if (convertFailure > 0) {
+        log(["GROQ", "CONVERT"], `Conversation converted with ${convertFailure} failure.`, true);
+    }
     return convertedConversation;
 }

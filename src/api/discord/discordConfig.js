@@ -1,7 +1,9 @@
 import Discord from 'discord.js';
 import { config as envConfig } from "dotenv";
-import { log } from '../../helper/logger.js';
+import { log } from '../../helper/loggerHelper.js';
 import { routeMessage } from '../../router/messageRouter.js';
+import { routeCommand } from '../../router/commandRouter.js';
+import { initDiscordCommand } from './discordCommand.js';
 
 
 // MARK: Config
@@ -30,13 +32,20 @@ export function initDiscordSocket() {
     discordClient.login(process.env.DISCORD_TOKEN);
 }
 
-discordClient.on("ready", () => {
+discordClient.on("ready", async () => {
     log(["DISCORD", "CLIENT", "READY"], `${discordClient.user.tag} is now online.`);
+    await initDiscordCommand();
 });
 
 discordClient.on("messageCreate", (msg) => {
     if (!msg.author.bot) {
         log(["DISCORD", "CLIENT", "MESSAGE"], `User ${msg.author.username} sent a message.`);
         routeMessage(msg);
+    }
+});
+
+discordClient.on('interactionCreate', (interaction) => {
+    if (interaction.isCommand()) {
+        routeCommand(interaction);
     }
 });

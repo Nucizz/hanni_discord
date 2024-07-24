@@ -1,9 +1,9 @@
 import axios from "axios";
 import { GROQ_RESPONSE_ROLE, sendGroqChat } from "../../api/groqAI/groqAIChat.js";
 import { getConversationHistory, pushConversationMessage } from "../../constants/conversation.js";
-import { log } from "../../helper/logger.js";
-import { handleReply } from "../common/messageHandler.js";
+import { log } from "../../helper/loggerHelper.js";
 import { handleSongPlayerCommand } from "../voices/songPlayerHandler.js";
+import { handleReply, handleSend } from "../common/messageHandler.js";
 
 export async function handleHelloHanni(message) {
     try {
@@ -16,39 +16,62 @@ export async function handleHelloHanni(message) {
             message.content + await handleAttachment(message.attachments)
         );
 
-        const answer = await sendGroqChat(conversation, message.channel.id);
+        const answer = await sendGroqChat(conversation);
         await pushConversationMessage(message.channel.id, "Hanni", GROQ_RESPONSE_ROLE.assistant, answer);
         
-        const systemCallback = await handleAnswer(answer, message);
-        if (systemCallback) {
-            const callbackAnswer = await handleSystemCallback(conversation, message.channel.id, systemCallback);
-            handleReply(message, callbackAnswer);
+        await handleAnswer(answer, message);
+    } catch (error) {
+        log(["CONVERSATION", "EXTERNAL"], error, true);
+    }
+}
+
+export async function handleHelloHanniFromSystem(content, channelId, needReply = false) {
+    try {
+        const conversation = await getConversationHistory(channelId);
+        
+        await pushConversationMessage(
+            channelId, 
+            "System", 
+            GROQ_RESPONSE_ROLE.system, 
+            content
+        );
+
+        if (needReply) {
+            const answer = await sendGroqChat(conversation);
+            await pushConversationMessage(channelId, "Hanni", GROQ_RESPONSE_ROLE.assistant, answer);
+            handleSend(channelId, answer);
+        }
+    } catch (error) {
+        log(["CONVERSATION", "INTERNAL"], error, true);
+    }
+}
+
+async function handleAnswer(answer, message) {
+    try {
+        if (answer.startsWith("JS--")) {
+            const commandResponse = await handleCommand(answer.replace(/JS--/g, ""), message);
+            if (commandResponse) await handleCommandResponse(commandResponse, message);
         } else {
             handleReply(message, answer);
         }
     } catch (error) {
-        log(["CONVERSATION"], error, true);
+        log(["CONVERSATION", "COMMAND"], error, true);
     }
 }
 
-async function handleSystemCallback(conversation, channelId, callbackContent) {
+async function handleCommandResponse(response, message) {
+    const conversation = await getConversationHistory(message.channel.id);
+
     await pushConversationMessage(
-        channelId, 
+        message.channel.id, 
+        "System", 
         GROQ_RESPONSE_ROLE.system, 
-        GROQ_RESPONSE_ROLE.system, 
-        callbackContent
+        response
     );
 
-    const answer = await sendGroqChat(conversation, channelId);
-    return answer;
-}
-
-async function handleAnswer(answer, message) {
-    if (answer.startsWith("JS--")) {
-        return await handleCommand(answer.replace(/JS--/g, ""), message);
-    } else {
-        return null;
-    }
+    const commandAnswer = await sendGroqChat(conversation);
+    await pushConversationMessage(message.channel.id, "Hanni", GROQ_RESPONSE_ROLE.assistant, commandAnswer);
+    handleReply(message, commandAnswer);
 }
 
 async function handleCommand(command, message) {
@@ -93,5 +116,5 @@ async function handleAttachment(attachments) {
             log(["ATTACHMENTS"], error, true)
         }
     }
-    return ` Attached data:\n ${attachmentTexts.join('\n')}`;
+    return attachmentTexts.length > 0 ? ` Attached data:\n ${attachmentTexts.join('\n')}` : '';
 }

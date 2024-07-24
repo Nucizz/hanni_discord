@@ -1,29 +1,29 @@
 import { generateDependencyReport } from '@discordjs/voice';
-import { overrideConsoleLog } from './src/helper/logger.js';
+import { log, overrideConsoleLog } from './src/helper/loggerHelper.js';
 import { initRemoteConfigData } from './src/api/firebase/firebaseRemoteConfig.js';
 import { initDiscordSocket } from './src/api/discord/discordConfig.js';
 import { testFirestoreAccess } from './src/api/firebase/firebaseFirestore.js';
 
 
 // MARK: Setup init
-initApp();
+await initApp();
 
 
 // MARK: On process
-// process.on('unhandledRejection', error => {
-//     log(["PROCESS"], error.message, true);
-// });
+process.on('unhandledRejection', error => {
+    log(["PROCESS"], error.message, true);
+});
 
 
 // MARK: Helper
-function initApp() {
+async function initApp() {
     console.clear();
 
     try {
         generateDependencyReport();
         overrideConsoleLog();
         initRemoteConfigData();
-        testFirestoreAccess();
+        await testFirestoreAccess();
         initDiscordSocket();
     } catch {
         process.exit(1);

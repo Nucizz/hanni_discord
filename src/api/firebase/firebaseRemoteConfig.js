@@ -1,5 +1,5 @@
 import { Config, REMOTE_CONFIG_KEY } from "../../constants/remoteConfig.js";
-import { log } from "../../helper/logger.js";
+import { log } from "../../helper/loggerHelper.js";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const community_id = require("../../../json/community_id.json");

@@ -1,6 +1,6 @@
 import { Community } from "../constants/remoteConfig.js";
-import { handleHelloHanni } from "../handler/messages/helloHanni.js";
-import { log } from "../helper/logger.js";
+import { handleHelloHanni } from "../handler/messages/helloHanniHandler.js";
+import { log } from "../helper/loggerHelper.js";
 
 export function routeMessage(message) {
     try {

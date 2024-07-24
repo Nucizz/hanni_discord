@@ -1,7 +1,7 @@
 import Tesseract from "tesseract.js";
 import pdfParse from "pdf-parse";
 import Tesseract from "tesseract.js";
-import { log } from "./logger";
+import { log } from "./loggerHelper";
 
 async function extractTextFromPDF(pdfBuffer) {
     try {
