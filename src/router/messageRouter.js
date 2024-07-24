@@ -13,9 +13,7 @@ export function routeMessage(message) {
     
         switch (handleType) {
             case 'hello-hanni':
-                handleHelloHanni(message).then(() => {
-                    log(["ROUTER", "MESSAGE", "HELLO_HANNI"], `Handling message from ${message.channel.id}.`);
-                });
+                handleHelloHanni(message)
                 break;
     
             case 'none':
