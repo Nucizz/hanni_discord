@@ -1,47 +1,31 @@
-import Discord from 'discord.js';
-import { config as envConfig } from "dotenv";
-import { Intents } from './src/constants/intents.js';
-import { messageRouter } from './src/router/messageRouter.js';
-import { HANNI_USER_ID } from './src/constants/hanni.js';
 import { generateDependencyReport } from '@discordjs/voice';
+import { overrideConsoleLog } from './src/helper/logger.js';
+import { initRemoteConfigData } from './src/api/firebase/firebaseRemoteConfig.js';
+import { initDiscordSocket } from './src/api/discord/discordConfig.js';
+import { testFirestoreAccess } from './src/api/firebase/firebaseFirestore.js';
 
 
-// MARK: Runtime Variable
-
-var messageHandledCount = 0;
-
-
-// MARK: Setup Helper
-
-envConfig();
+// MARK: Setup init
+initApp();
 
 
-// MARK: Setup Client
+// MARK: On process
+// process.on('unhandledRejection', error => {
+//     log(["PROCESS"], error.message, true);
+// });
 
-export const client = new Discord.Client({
-    intents: Intents
-});
 
-
-// MARK: Discord Bot Functions
-
-process.on('unhandledRejection', error => {
+// MARK: Helper
+function initApp() {
     console.clear();
-	console.error('[ERROR]', error.message);
-});
 
-client.on("ready", () => {
-    console.clear();
-    console.log(generateDependencyReport());
-    console.log(`[START] ${client.user.tag} is now online.`);
-});
-
-client.on("messageCreate", (msg) => {
-    if (msg.author.id !== HANNI_USER_ID && !msg.author.bot) {
-        messageRouter(msg);
-        messageHandledCount++;
-        console.log(`[LOG][MSG] Responds to ${msg.author.username}`)
+    try {
+        generateDependencyReport();
+        overrideConsoleLog();
+        initRemoteConfigData();
+        testFirestoreAccess();
+        initDiscordSocket();
+    } catch {
+        process.exit(1);
     }
-});
-
-client.login(process.env.DISCORD_TOKEN);
+}

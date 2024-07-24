@@ -1,30 +1,31 @@
-import { CODE_JEANS_SERVER, CODE_JEANS_CHANNEL } from "../constants/codeJeans.js";
-import { EXTERNAL_SERVER } from "../constants/externalCommunity.js";
-import { handleExternalHelloHanni, handleHelloHanni } from "../handler/messages/helloHanniHandler.js";
+import { Community } from "../constants/remoteConfig.js";
+import { handleHelloHanni } from "../handler/messages/helloHanni.js";
+import { log } from "../helper/logger.js";
 
-export function messageRouter(msg) {
-    msg.guild.id === CODE_JEANS_SERVER ? 
-        codeJeansRouter(msg) : externalRouter(msg);
-}
+export function routeMessage(message) {
+    try {
+        const handleType = Community.getChannelHandleTypeByChannelId(message.channel.id) ?? 'none';
 
-function codeJeansRouter(msg) {
-    switch (msg.channel.id) {
-        case CODE_JEANS_CHANNEL.get('hello-hanni-private'): 
-            handleHelloHanni(msg, true);
-            break;
-
-        case CODE_JEANS_CHANNEL.get('hello-hanni'): 
-            handleHelloHanni(msg);
-            break;
+        if (!handleType) {
+            log(["ROUTER", "MESSAGE"], `Cant find channel ${message.channel.id} in config.`, true);
+            return;
+        }
     
-        default:
-            break;
-    }
-}
-
-function externalRouter(msg) {
-    // Only handle hello-hanni
-    if (msg.channel.id === EXTERNAL_SERVER.get("miracle").channel.get("hello-hanni")) {
-        handleExternalHelloHanni(msg)
+        switch (handleType) {
+            case 'hello-hanni':
+                handleHelloHanni(message).then(() => {
+                    log(["ROUTER", "MESSAGE", "HELLO_HANNI"], `Handling message from ${message.channel.id}.`);
+                });
+                break;
+    
+            case 'none':
+                log(["ROUTER", "MESSAGE"], `Ignoring to handle message from channel ${message.channel.id}.`);
+                break;
+    
+            default:
+                log(["ROUTER", "MESSAGE"], `Unknown handle type for channel ${message.channel.id}.`, true);
+        }
+    } catch (error) {
+        log(["ROUTER", "MESSAGE"], error, true);
     }
 }

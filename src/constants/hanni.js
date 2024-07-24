@@ -1,1 +1,0 @@
-export const HANNI_USER_ID = '1252173816457723954'
