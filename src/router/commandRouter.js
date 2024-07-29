@@ -1,8 +1,12 @@
+import { helloHanniConfigCommands } from "../handler/command/helloHanniConfigHandler.js";
+import { songPlayerControlCommands } from "../handler/command/songPlayerControlHandler.js";
 import { utilityCommands } from "../handler/command/utilityHandler.js";
 import { log } from "../helper/loggerHelper.js";
 
 export const commandList = [
-    ...utilityCommands
+    ...utilityCommands,
+    ...helloHanniConfigCommands,
+    ...songPlayerControlCommands
 ]
 
 export function routeCommand(interaction) {
@@ -11,19 +15,19 @@ export function routeCommand(interaction) {
     if (command) {
         command.action(interaction)
             .then(() => {
-                log(["DISCORD", "CLIENT", "COMMAND"], `Executed command ${interaction.commandName}`);
+                log(["ROUTER", "COMMAND"], `Executed command ${interaction.commandName}`);
             })
             .catch(async (error) => {
-                log(["DISCORD", "CLIENT", "COMMAND"], error, true);
+                log(["ROUTER", "COMMAND"], error, true);
                 await interaction.reply('There was an error while executing this command!');
             })
     } else {
         interaction.reply('Unknown command!')
             .then(() => {
-                log(["DISCORD", "CLIENT", "COMMAND"], `Unknown command ${interaction.commandName} was called`, true);
+                log(["ROUTER", "COMMAND"], `Unknown command ${interaction.commandName} was called`, true);
             })
             .catch(async (error) => {
-                log(["DISCORD", "CLIENT", "COMMAND"], error, true);
+                log(["ROUTER", "COMMAND"], error, true);
             })
     }
 }

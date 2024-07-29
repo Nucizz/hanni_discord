@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from "discord.js";
+import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { clearChannel } from "../common/channelHandler.js";
 
 export const utilityCommands = [
@@ -7,26 +7,23 @@ export const utilityCommands = [
             .setName('ping')
             .setDescription('Replies with Pong!'),
         action: async (interaction) => {
-            await interaction.reply('Pong!');
+            await interaction.reply({ content: 'Pong!', ephemeral: true });
         }
     },
     {
         command: new SlashCommandBuilder()
             .setName('clear_chat')
-            .setDescription('Clears the chat room.'),
+            .setDescription('Clears the chat room.')
+            .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
         action: async (interaction) => {
             if (!interaction.channel.isTextBased()) {
-                await interaction.reply('This command can only be used in text channels.');
+                await interaction.reply({ content: 'This command can only be used in text channels.', ephemeral: true });
                 return;
             }
 
-            const member = interaction.guild.members.cache.get(interaction.user.id);
-            if (!member || !member.permissions.has('ADMINISTRATOR')) {
-                await interaction.reply('You do not have the required permissions to use this command.');
-                return;
-            }
-
+            await interaction.reply({ content: '**Start clearing messages now...**', ephemeral: true });
             await clearChannel(interaction.channel);
+            await interaction.deleteReply();
         }
     }
 ]

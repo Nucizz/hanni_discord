@@ -16,7 +16,7 @@ export async function handleSongPlayerCommand(command, message) {
     const guildId = message.guild.id
     let response = "Failed to find your song!"
     if (voiceChannel) {
-        initVoiceSongData(guildId, voiceChannel, message.channel.id);
+        initVoiceSongData(guildId, voiceChannel, message.channel.id, true);
 
         if (command.startsWith("play ")) {
             response = await handleSongPlay(command.replace(/play /g, ""), voiceChannel);
@@ -38,8 +38,11 @@ export async function handleSongPlayerCommand(command, message) {
     }
 
     log(["MUSIC", "CALLBACK"], response);
-    handleHelloHanniFromSystem(response, message.channel.id, true);
+    return response;
 }
+
+
+// MARK: Sub-handler
 
 function initVoiceSongData(guildId, voiceChannel, textChannelId) {
     const existingData = voiceSongData.find(guild => guild.id === guildId);
@@ -50,7 +53,11 @@ function initVoiceSongData(guildId, voiceChannel, textChannelId) {
             textChannelId: textChannelId,
             queueList: [],
             connection: null,
-            player: null
+            player: null,
+            meta: {
+                isInitial: true,
+                isSkipped: false
+            }
         });
     }
 }
@@ -62,30 +69,31 @@ function popVoiceSongData(guildId) {
 async function handleSongPlay(query, voiceChannel) {
     const data = voiceSongData.find(guild => guild.id === voiceChannel.guild.id);
     if (data) {
-        const audioStreams = await fetchAudioByQuery(query);
-        if (audioStreams.length > 0) {
-            data.queueList = [...audioStreams];
+        const response = await fetchAudioByQuery(query);
+        if (response.audioStreams.length > 0) {
+            data.queueList = [...response.audioStreams];
+            data.meta.isInitial = true;
             playVoice(voiceChannel);
-            return `Successfully played ${query}!`
+            return `Successfully played **${response.fixedQuery}**!`;
         }
     }
 
-    return `Failed to play ${query}!`
+    return `Failed to play ${query}!`;
 }
 
 async function handleSongQueue(query, voiceChannel) {
     const data = voiceSongData.find(guild => guild.id === voiceChannel.guild.id);
     if (data) {
-        const audioStreams = await fetchAudioByQuery(query);
-        if (audioStreams.length > 0) {
-            data.queueList = [...data.queueList, ...audioStreams];
+        const response = await fetchAudioByQuery(query);
+        if (response.audioStreams.length > 0) {
+            data.queueList = [...data.queueList, ...response.audioStreams];
 
-            if (!voiceSongData.find(guild => guild.id === voiceChannel.guild.id).player) playVoice(voiceChannel);
-            return `Successfully queued ${query}!`
+            if (!data.player) playVoice(voiceChannel);
+            return `Successfully queued **${response.fixedQuery}**!`;
         }
     }
 
-    return `Failed to queue ${query}!`
+    return `Failed to queue ${query}!`;
 }
 
 function handleSongStop(guildId) {
@@ -103,6 +111,7 @@ function handleSongSkip(guildId) {
     const data = voiceSongData.find(guild => guild.id === guildId);
     if (data) {
         if (data.player && data.player.state.status === AudioPlayerStatus.Playing) {
+            data.meta.isSkipped = true;
             data.player.stop();
         }
 
@@ -125,14 +134,14 @@ async function playVoice(voiceChannel) {
     log(["VOICE", "MUSIC"], `Joined voice channel of ${voiceChannel.guild.id}`);
 
     data.connection.on('error', error => {
-        handleHelloHanniFromSystem("There was an error while playing song.", data.textChannelId, true);
+        handleHelloHanniFromSystem("SONG PLAYER", "There was an error while playing song.", data.textChannelId, true);
         log(["VOICE", "MUSIC"], error, true);
         data.connection.destroy();
         popVoiceSongData(voiceChannel.guild.id);
     });
 
     data.connection.on('disconnect', () => {
-        handleHelloHanniFromSystem("Disconnected from the voice channel.", data.textChannelId, true);
+        handleHelloHanniFromSystem("SONG PLAYER", "Disconnected from the voice channel.", data.textChannelId, true);
         log(["VOICE", "MUSIC"], "Disconnected from the voice channel.", true);
         data.connection.destroy();
         popVoiceSongData(voiceChannel.guild.id);
@@ -144,17 +153,16 @@ async function playVoice(voiceChannel) {
 
     const playNextSong = async () => {
         if (data.queueList.length === 0) {
-            handleHelloHanniFromSystem("Finished playing the song/queue.", data.textChannelId);
+            handleHelloHanniFromSystem("SONG PLAYER", "Finished playing the song/queue.", data.textChannelId);
             log(["MUSIC", "VOICE"], "Finished playing the song/queue.");
             data.connection.destroy();
-            data.connection = null;
-            data.player = null;
+            popVoiceSongData(voiceChannel.guild.id);
             return;
         }
 
         const nextTrack = data.queueList.shift();
         if (!nextTrack || !nextTrack.buffer) {
-            handleHelloHanniFromSystem(`Failed to play song: ${nextTrack.name ?? "Undefined"}`, data.textChannelId, true);
+            handleHelloHanniFromSystem("SONG PLAYER", `Failed to play song: ${nextTrack.name ?? "Undefined"}`, data.textChannelId, true);
             log(["MUSIC", "VOICE"], `Failed to play song: ${nextTrack.name ?? "Undefined"}`, true);
             return playNextSong();
         }
@@ -165,16 +173,25 @@ async function playVoice(voiceChannel) {
         try {
             await new Promise((resolve, reject) => {
                 const queueStatus = data.queueList.map((song, index) => `${index + 1}. ${song.name}`).join('\n');
-                const queueStatusText = queueStatus ? ` with queue of:\n${queueStatus}` : "";
-                handleHelloHanniFromSystem(`Playing song: ${nextTrack.name}${queueStatusText}`, data.textChannelId);
-                log(["VOICE", "MUSIC"], `Playing song: ${nextTrack.name}${queueStatusText}`);
+                const queueStatusText = queueStatus.length > 0 ? ` with queue of:\n${queueStatus}` : "";
+                
+                if (data.meta.isSkipped) {
+                    handleHelloHanniFromSystem("SONG PLAYER", `Now playing: "${nextTrack.name}${queueStatusText}"`, data.textChannelId);
+                    data.meta.isSkipped = false;
+                } else if (data.meta.isInitial) {
+                    handleHelloHanniFromSystem("SONG PLAYER", `Now playing: "${nextTrack.name}${queueStatusText}"`, data.textChannelId);
+                    data.meta.isInitial = false;
+                } else {
+                    handleHelloHanniFromSystem("SONG PLAYER", `Now playing: "${nextTrack.name}${queueStatusText}"`, data.textChannelId, true);
+                }
+                log(["VOICE", "MUSIC"], `Now playing: "${nextTrack.name}${queueStatusText}"`);
 
                 data.player.once(AudioPlayerStatus.Idle, resolve);
                 data.player.once('error', reject);
             });
             playNextSong();
         } catch (error) {
-            handleHelloHanniFromSystem(`Failed to play song: ${nextTrack.name ?? "Undefined"}`, data.textChannelId, true);
+            handleHelloHanniFromSystem("SONG PLAYER", `Failed to play song: ${nextTrack.name ?? "Undefined"}`, data.textChannelId, true);
             log(["VOICE", "MUSIC"], `Player error: ${error}`, true);
             playNextSong();
         }
@@ -189,32 +206,48 @@ async function fetchAudioByQuery(query) {
     const youtubeVideoRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)[^&=%\?]{11}/;
     const spotifyTrackRegex = /^(https?:\/\/)?(open\.)?spotify\.com\/track\/[a-zA-Z0-9]+(?:\?si=[a-zA-Z0-9]+)?$/;
     const spotifyPlaylistRegex = /^(https?:\/\/)?(open\.)?spotify\.com\/playlist\/[a-zA-Z0-9]+(?:\?si=[a-zA-Z0-9]+)?$/;
-    let audioStreams = [];
+    
+    let songQueryResponse = {
+        fixedQuery: "Undefined",
+        audioStreams: []
+    };
 
     if (youtubeVideoRegex.test(query)) {
-        const stream = generateYoutubeAudio(query);
-        if (stream) audioStreams.push(stream);
+        const stream = await generateYoutubeAudio(query);
+        if (stream) {
+            songQueryResponse.audioStreams.push(stream);
+            songQueryResponse.fixedQuery = stream.name;
+        }
 
     } else if (spotifyTrackRegex.test(query)) {
         const stream = await generateSpotifyTrackAudio(query);
-        if (stream) audioStreams.push(stream);
+        if (stream) {
+            songQueryResponse.audioStreams.push(stream);
+            songQueryResponse.fixedQuery = stream.name;
+        }
 
     } else if (spotifyPlaylistRegex.test(query)) {
-        const streams = await generateSpotifyPlaylistAudio(query);
-        if (streams) audioStreams = [...streams];
+        const stream = await generateSpotifyPlaylistAudio(query);
+        if (stream) {
+            songQueryResponse.audioStreams = [...stream.bufferList];
+            songQueryResponse.fixedQuery = stream.name;
+        }
 
     } else { // TEXT
         const stream = await generateSpotifyTrackAudio(query);
-        if (stream) audioStreams.push(stream);
+        if (stream) {
+            songQueryResponse.audioStreams.push(stream);
+            songQueryResponse.fixedQuery = stream.name;
+        }
     }
 
-    return audioStreams;   
+    return songQueryResponse;
 }
 
-function generateYoutubeAudio(url) {
+async function generateYoutubeAudio(url) {
     log(["VOICE", "MUSIC", "YOUTUBE"], `Fetching song ${url} from Youtube`);
     return {
-        name: url,
+        name: await ytdl.getBasicInfo(url).title,
         buffer: ytdl(url, {
             filter: "audioonly",
             quality: "lowestaudio"
@@ -229,11 +262,11 @@ async function generateSpotifyTrackAudio(url) {
         if (!trackData || !trackData.audioBuffer) {
             return null;
         }
-        const audioStream = new PassThrough();
-        audioStream.end(trackData.audioBuffer);
+        const buffer = new PassThrough();
+        buffer.end(trackData.audioBuffer);
         return {
-            name: url,
-            buffer: audioStream
+            name: `${trackData.title} by ${trackData.artists}`,
+            buffer: buffer
         };
     } catch (error) {
         log(["VOICE", "MUSIC", "SPOTIFY"], error, true);
@@ -242,19 +275,19 @@ async function generateSpotifyTrackAudio(url) {
 }
 
 async function generateSpotifyPlaylistAudio(url) {
-    log(["VOICE", "MUSIC", "SPOTIFY"], `Fetching song ${url} from Spotify`);
+    log(["VOICE", "MUSIC", "SPOTIFY"], `Fetching playlist ${url} from Spotify`);
     try {
         const albumData = await downloadAlbum(url);
         if (!albumData || !albumData.trackList) {
             return null;
         }
 
-        const audioStreams = albumData.trackList.map(track => {
+        const bufferList = albumData.trackList.map(track => {
             if (track.success && track.audioBuffer) {
                 const stream = new PassThrough();
                 stream.end(track.audioBuffer);
                 return {
-                    name: url,
+                    name: `${track.metadata.title} by ${track.metadata.artists}`,
                     buffer: stream
                 };
             } else {
@@ -262,7 +295,10 @@ async function generateSpotifyPlaylistAudio(url) {
             }
         }).filter(stream => stream !== null);
 
-        return audioStreams;
+        return {
+            name: albumData.metadata.title,
+            bufferList: bufferList
+        };
     } catch (error) {
         log(["VOICE", "MUSIC", "SPOTIFY"], error, true);
         return null;

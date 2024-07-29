@@ -25,7 +25,7 @@ export async function handleHelloHanni(message) {
     }
 }
 
-export async function handleHelloHanniFromSystem(content, channelId, needReply = false) {
+export async function handleHelloHanniFromSystem(module, content, channelId, needReply = false) {
     try {
         const conversation = await getConversationHistory(channelId);
         
@@ -33,7 +33,7 @@ export async function handleHelloHanniFromSystem(content, channelId, needReply =
             channelId, 
             "System", 
             GROQ_RESPONSE_ROLE.system, 
-            content
+            `[${module}] ${content}`
         );
 
         if (needReply) {

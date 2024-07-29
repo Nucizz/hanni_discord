@@ -1,4 +1,5 @@
 import { FIRESTORE_KEY } from "../../constants/firestoreKey.js";
+import { Community } from "../../constants/remoteConfig.js";
 import { log } from "../../helper/loggerHelper.js";
 import { adminRef, fs } from "./firebaseConfig.js";
 
@@ -35,6 +36,10 @@ export async function saveNewConversation(channelId, conversation) {
     try {
         const docRef = fs.collection(FIRESTORE_KEY.conversation).doc(channelId)
         await docRef.set({
+            legends: {
+                guild: Community.getGuildNameByChannelId(channelId),
+                channel: Community.getChannelNameByChannelId(channelId)
+            },
             messages: conversation
         });
 
