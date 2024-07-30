@@ -176,16 +176,16 @@ async function playVoice(voiceChannel) {
                 const queueStatusText = queueStatus.length > 0 ? ` with queue of:\n${queueStatus}` : "";
                 
                 if (data.meta.isSkipped) {
-                    handleHelloHanniFromSystem("SONG PLAYER", `Now playing: "${nextTrack.name}${queueStatusText}"`, data.textChannelId);
-                    data.meta.isSkipped = false;
-                } else if (data.meta.isInitial) {
-                    handleHelloHanniFromSystem("SONG PLAYER", `Now playing: "${nextTrack.name}${queueStatusText}"`, data.textChannelId);
-                    data.meta.isInitial = false;
+                    handleHelloHanniFromSystem("SONG PLAYER", `Now playing: "${nextTrack.name}" ${queueStatusText}`, data.textChannelId);
+                } else if (data.meta.isInitial && data.queueList.length === 0) {
+                    handleHelloHanniFromSystem("SONG PLAYER", `Now playing: "${nextTrack.name}" ${queueStatusText}`, data.textChannelId);
                 } else {
-                    handleHelloHanniFromSystem("SONG PLAYER", `Now playing: "${nextTrack.name}${queueStatusText}"`, data.textChannelId, true);
+                    handleHelloHanniFromSystem("SONG PLAYER", `Now playing: "${nextTrack.name}" ${queueStatusText}`, data.textChannelId, true);
                 }
                 log(["VOICE", "MUSIC"], `Now playing: "${nextTrack.name}${queueStatusText}"`);
 
+                data.meta.isInitial = false;
+                data.meta.isSkipped = false;
                 data.player.once(AudioPlayerStatus.Idle, resolve);
                 data.player.once('error', reject);
             });
