@@ -74,7 +74,7 @@ async function handleSongPlay(query, voiceChannel) {
             data.queueList = [...response.audioStreams];
             data.meta.isInitial = true;
             playVoice(voiceChannel);
-            return `Successfully played **${response.fixedQuery}**!`;
+            return `Successfully played **${response.fixedQuery}** to voice channel now!`;
         }
     }
 
@@ -89,7 +89,7 @@ async function handleSongQueue(query, voiceChannel) {
             data.queueList = [...data.queueList, ...response.audioStreams];
 
             if (!data.player) playVoice(voiceChannel);
-            return `Successfully queued **${response.fixedQuery}**!`;
+            return `Successfully added **${response.fixedQuery}** to queue list!`;
         }
     }
 
@@ -134,14 +134,14 @@ async function playVoice(voiceChannel) {
     log(["VOICE", "MUSIC"], `Joined voice channel of ${voiceChannel.guild.id}`);
 
     data.connection.on('error', error => {
-        handleHelloHanniFromSystem("SONG PLAYER", "There was an error while playing song.", data.textChannelId, true);
+        handleHelloHanniFromSystem("There was an error while playing song.", data.textChannelId, true);
         log(["VOICE", "MUSIC"], error, true);
         data.connection.destroy();
         popVoiceSongData(voiceChannel.guild.id);
     });
 
     data.connection.on('disconnect', () => {
-        handleHelloHanniFromSystem("SONG PLAYER", "Disconnected from the voice channel.", data.textChannelId, true);
+        handleHelloHanniFromSystem("Disconnected from the voice channel.", data.textChannelId, true);
         log(["VOICE", "MUSIC"], "Disconnected from the voice channel.", true);
         data.connection.destroy();
         popVoiceSongData(voiceChannel.guild.id);
@@ -153,7 +153,7 @@ async function playVoice(voiceChannel) {
 
     const playNextSong = async () => {
         if (data.queueList.length === 0) {
-            handleHelloHanniFromSystem("SONG PLAYER", "Finished playing the song/queue.", data.textChannelId);
+            handleHelloHanniFromSystem("Finished playing the song/queue.", data.textChannelId);
             log(["MUSIC", "VOICE"], "Finished playing the song/queue.");
             data.connection.destroy();
             popVoiceSongData(voiceChannel.guild.id);
@@ -162,7 +162,7 @@ async function playVoice(voiceChannel) {
 
         const nextTrack = data.queueList.shift();
         if (!nextTrack || !nextTrack.buffer) {
-            handleHelloHanniFromSystem("SONG PLAYER", `Failed to play song: ${nextTrack.name ?? "Undefined"}`, data.textChannelId, true);
+            handleHelloHanniFromSystem(`Failed to play song: ${nextTrack.name ?? "Undefined"}`, data.textChannelId, true);
             log(["MUSIC", "VOICE"], `Failed to play song: ${nextTrack.name ?? "Undefined"}`, true);
             return playNextSong();
         }
@@ -176,11 +176,11 @@ async function playVoice(voiceChannel) {
                 const queueStatusText = queueStatus.length > 0 ? ` with queue of:\n${queueStatus}` : "";
                 
                 if (data.meta.isSkipped) {
-                    handleHelloHanniFromSystem("SONG PLAYER", `Now playing: "${nextTrack.name}" ${queueStatusText}`, data.textChannelId);
+                    handleHelloHanniFromSystem(`Now playing: "${nextTrack.name}" ${queueStatusText}`, data.textChannelId);
                 } else if (data.meta.isInitial && data.queueList.length === 0) {
-                    handleHelloHanniFromSystem("SONG PLAYER", `Now playing: "${nextTrack.name}" ${queueStatusText}`, data.textChannelId);
+                    handleHelloHanniFromSystem(`Now playing: "${nextTrack.name}" ${queueStatusText}`, data.textChannelId);
                 } else {
-                    handleHelloHanniFromSystem("SONG PLAYER", `Now playing: "${nextTrack.name}" ${queueStatusText}`, data.textChannelId, true);
+                    handleHelloHanniFromSystem(`Now playing: "${nextTrack.name}" ${queueStatusText}`, data.textChannelId, true);
                 }
                 log(["VOICE", "MUSIC"], `Now playing: "${nextTrack.name}${queueStatusText}"`);
 
@@ -191,7 +191,7 @@ async function playVoice(voiceChannel) {
             });
             playNextSong();
         } catch (error) {
-            handleHelloHanniFromSystem("SONG PLAYER", `Failed to play song: ${nextTrack.name ?? "Undefined"}`, data.textChannelId, true);
+            handleHelloHanniFromSystem(`Failed to play song: ${nextTrack.name ?? "Undefined"}`, data.textChannelId, true);
             log(["VOICE", "MUSIC"], `Player error: ${error}`, true);
             playNextSong();
         }

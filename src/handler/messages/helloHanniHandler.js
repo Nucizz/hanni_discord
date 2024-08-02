@@ -25,7 +25,7 @@ export async function handleHelloHanni(message) {
     }
 }
 
-export async function handleHelloHanniFromSystem(module, content, channelId, needReply = false) {
+export async function handleHelloHanniFromSystem(content, channelId, needReply = false) {
     try {
         const conversation = await getConversationHistory(channelId);
         
@@ -33,7 +33,7 @@ export async function handleHelloHanniFromSystem(module, content, channelId, nee
             channelId, 
             "System", 
             AI_CONVERSATION_ROLE.system, 
-            `[${module}] ${content}`
+            `${content}`
         );
 
         if (needReply) {

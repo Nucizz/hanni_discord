@@ -28,19 +28,19 @@ function convertConversationToGroqResponse(conversation) {
     let convertFailure = 0;
     const convertedConversation = conversation.map(message => {
         switch (message.role) {
-            case 'user':
+            case AI_CONVERSATION_ROLE.user:
                 return {
                     role: AI_CONVERSATION_ROLE.user,
                     content: `${message.author}: ${message.content}`
                 };
 
-            case 'assistant':
+            case AI_CONVERSATION_ROLE.assistant:
                 return {
                     role: AI_CONVERSATION_ROLE.assistant,
                     content: message.content
                 };
 
-            case 'system':
+            case AI_CONVERSATION_ROLE.system:
                 return {
                     role: AI_CONVERSATION_ROLE.system,
                     content: message.content

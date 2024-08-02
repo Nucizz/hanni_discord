@@ -1,3 +1,4 @@
+import { AI_CONVERSATION_ROLE } from "../../handler/ai/aiHandler.js";
 import { log } from "../../helper/loggerHelper.js";
 import { geminiClient } from "../gemini/geminiConfig.js"
 
@@ -20,19 +21,17 @@ async function getGeminiCompletion(conversation) {
 }
 
 function convertConversationToGeminiResponse(conversation) {
-    let convertCount = 0;
     let convertFailure = 0;
     const convertedConversation = conversation.map(message => {
-        convertCount = convertCount + 1;
         switch (message.role) {
-            case 'user':
-                return `[${convertCount - convertFailure}] ${message.author}: ${message.content}\n`;
+            case AI_CONVERSATION_ROLE.user:
+                return `${message.author}: ${message.content}\n`;
 
-            case 'assistant':
-                return `[${convertCount - convertFailure}] GEMINI AI: ${message.content}\n`;
+            case AI_CONVERSATION_ROLE.assistant:
+                return `${AI_CONVERSATION_ROLE.assistant}: ${message.content}\n`;
 
-            case 'system':
-                return `[${convertCount - convertFailure}] NODE JS: ${message.content}\n`;
+            case AI_CONVERSATION_ROLE.system:
+                return `${AI_CONVERSATION_ROLE.system}: ${message.content}\n`;
 
             default:
                 convertFailure = convertFailure + 1;
