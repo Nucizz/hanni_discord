@@ -1,13 +1,6 @@
+import { AI_CONVERSATION_ROLE } from "../../handler/ai/aiHandler.js";
 import { log } from "../../helper/loggerHelper.js";
 import { groqClient } from "./groqAIConfig.js";
-
-
-// MARK: Static
-export const GROQ_RESPONSE_ROLE = {
-    system: "system",
-    assistant: "assistant",
-    user: "user"
-}
 
 
 // MARK: Handler
@@ -16,7 +9,7 @@ export async function sendGroqChat(conversation) {
         const result = await getGroqCompletion(conversation);
         return result;
     } catch (error) {
-        return `Ouch, please fix this error: \n\`\`\`json\n${error}\`\`\``;
+        throw error;
     }
 }
 
@@ -37,19 +30,19 @@ function convertConversationToGroqResponse(conversation) {
         switch (message.role) {
             case 'user':
                 return {
-                    role: GROQ_RESPONSE_ROLE.user,
+                    role: AI_CONVERSATION_ROLE.user,
                     content: `${message.author}: ${message.content}`
                 };
 
             case 'assistant':
                 return {
-                    role: GROQ_RESPONSE_ROLE.assistant,
+                    role: AI_CONVERSATION_ROLE.assistant,
                     content: message.content
                 };
 
             case 'system':
                 return {
-                    role: GROQ_RESPONSE_ROLE.system,
+                    role: AI_CONVERSATION_ROLE.system,
                     content: message.content
                 };
 

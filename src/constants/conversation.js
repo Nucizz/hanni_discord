@@ -1,5 +1,5 @@
 import { fetchConversation, saveMessage, saveNewConversation } from "../api/firebase/firebaseFirestore.js"
-import { GROQ_RESPONSE_ROLE } from "../api/groqAI/groqAIChat.js";
+import { AI_CONVERSATION_ROLE } from "../handler/ai/aiHandler.js";
 import { log } from "../helper/loggerHelper.js";
 import { Community, Config } from "./remoteConfig.js";
 
@@ -51,7 +51,7 @@ export async function createNewConversation(channelId) {
     const guildName = Community.getGuildNameByChannelId(channelId) ?? "Unknown";
     const promptedConversation = Config.llm_prompt.map(text => ({
         author: "System",
-        role: GROQ_RESPONSE_ROLE.system,
+        role: AI_CONVERSATION_ROLE.system,
         content: text.replace(/{{serverName}}/g, guildName),
         timestamp: new Date().toISOString()
     }));

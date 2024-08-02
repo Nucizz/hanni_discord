@@ -1,9 +1,9 @@
 import axios from "axios";
-import { GROQ_RESPONSE_ROLE, sendGroqChat } from "../../api/groqAI/groqAIChat.js";
 import { getConversationHistory, pushConversationMessage } from "../../constants/conversation.js";
 import { log } from "../../helper/loggerHelper.js";
 import { handleSongPlayerCommand } from "../voices/songPlayerHandler.js";
 import { handleReply, handleSend } from "../common/messageHandler.js";
+import { AI_CONVERSATION_ROLE, handleConversation } from "../ai/aiHandler.js";
 
 export async function handleHelloHanni(message) {
     try {
@@ -12,12 +12,12 @@ export async function handleHelloHanni(message) {
         await pushConversationMessage(
             message.channel.id, 
             message.author.username, 
-            GROQ_RESPONSE_ROLE.user, 
+            AI_CONVERSATION_ROLE.user, 
             message.content + await handleAttachment(message.attachments)
         );
 
-        const answer = await sendGroqChat(conversation);
-        await pushConversationMessage(message.channel.id, "Hanni", GROQ_RESPONSE_ROLE.assistant, answer);
+        const answer = await handleConversation(conversation);
+        await pushConversationMessage(message.channel.id, "Hanni", AI_CONVERSATION_ROLE.assistant, answer);
         
         await handleAnswer(answer, message);
     } catch (error) {
@@ -32,13 +32,13 @@ export async function handleHelloHanniFromSystem(module, content, channelId, nee
         await pushConversationMessage(
             channelId, 
             "System", 
-            GROQ_RESPONSE_ROLE.system, 
+            AI_CONVERSATION_ROLE.system, 
             `[${module}] ${content}`
         );
 
         if (needReply) {
-            const answer = await sendGroqChat(conversation);
-            await pushConversationMessage(channelId, "Hanni", GROQ_RESPONSE_ROLE.assistant, answer);
+            const answer = await handleConversation(conversation);
+            await pushConversationMessage(channelId, "Hanni", AI_CONVERSATION_ROLE.assistant, answer);
             handleSend(channelId, answer);
         }
     } catch (error) {
@@ -65,12 +65,12 @@ async function handleCommandResponse(response, message) {
     await pushConversationMessage(
         message.channel.id, 
         "System", 
-        GROQ_RESPONSE_ROLE.system, 
+        AI_CONVERSATION_ROLE.system, 
         response
     );
 
-    const commandAnswer = await sendGroqChat(conversation);
-    await pushConversationMessage(message.channel.id, "Hanni", GROQ_RESPONSE_ROLE.assistant, commandAnswer);
+    const commandAnswer = await handleConversation(conversation);
+    await pushConversationMessage(message.channel.id, "Hanni", AI_CONVERSATION_ROLE.assistant, commandAnswer);
     handleReply(message, commandAnswer);
 }
 

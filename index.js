@@ -11,7 +11,7 @@ await initApp();
 
 // MARK: On process
 process.on('unhandledRejection', error => {
-    log(["PROCESS"], error.message, true);
+    log(['PROCESS'], error.message, true);
 });
 
 
