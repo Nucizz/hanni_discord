@@ -71,6 +71,20 @@ export const songPlayerControlCommands = [
             await interaction.editReply({ content: response, ephemeral: false });
         }
     },
+    {
+        command: new SlashCommandBuilder()
+            .setName('lyrics')
+            .setDescription('Get lyrics for current playing song.')
+            .setDMPermission(false)
+            .setDefaultMemberPermissions(PermissionFlagsBits.DeafenMembers | PermissionFlagsBits.Administrator),
+        action: async (interaction) => {
+            if (guardHelloHanniRestriction(interaction)) return;
+
+            await interaction.reply({ content: `Finding lyrics...`, ephemeral: false });
+            const response = await handleSongPlayerCommand("lyrics", interaction);
+            await interaction.editReply({ content: response, ephemeral: false });
+        }
+    },
 ]
 
 function guardHelloHanniRestriction(interaction) {

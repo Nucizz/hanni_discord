@@ -50,7 +50,7 @@ export async function pushConversationMessage(channelId, authorName, authorRole,
 export async function createNewConversation(channelId) {
     const guildName = Community.getGuildNameByChannelId(channelId) ?? "Unknown";
     const promptedConversation = Config.llm_prompt.map(text => ({
-        author: "System",
+        author: AI_CONVERSATION_ROLE.system,
         role: AI_CONVERSATION_ROLE.system,
         content: text.replace(/{{serverName}}/g, guildName),
         timestamp: new Date().toISOString()

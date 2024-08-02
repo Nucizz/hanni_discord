@@ -4,6 +4,7 @@ import { downloadTrack, downloadAlbum, } from '@nechlophomeriaa/spotifydl';
 import { joinVoiceChannel, VoiceConnectionStatus, entersState, createAudioPlayer, createAudioResource, AudioPlayerStatus } from '@discordjs/voice';
 import { log } from "../../helper/loggerHelper.js";
 import { handleHelloHanniFromSystem } from "../messages/helloHanniHandler.js";
+import { geniusClient } from "../../api/genius/geniusConfig.js";
 
 
 // MARK: Variable
@@ -14,7 +15,7 @@ let voiceSongData = [];
 export async function handleSongPlayerCommand(command, message) {
     const voiceChannel = message.member.voice.channel;
     const guildId = message.guild.id
-    let response = "Failed to find your song!"
+    let response = "Failed to find your request!"
     if (voiceChannel) {
         initVoiceSongData(guildId, voiceChannel, message.channel.id, true);
 
@@ -24,14 +25,17 @@ export async function handleSongPlayerCommand(command, message) {
         } else if (command.startsWith("queue ")) {
             response = await handleSongQueue(command.replace(/queue /g, ""), voiceChannel);
 
-        } else if (command == "stop") {
+        } else if (command.startsWith("stop")) {
             response = handleSongStop(guildId);
 
-        } else if (command == "skip") {
+        } else if (command.startsWith("skip")) {
             response = handleSongSkip(guildId);
 
-        }else {
-            response = "Your command is undefined, please use [JS--song.play, JS--song.queue, JS--song.stop]."
+        } else if (command.startsWith("lyrics")) {
+            response = await handleSongLyrics(guildId);
+
+        } else {
+            response = "Your command is undefined, please use [JS--song.play, JS--song.queue, JS--song.stop, JS--song.lyrics]."
         }
     } else {
         response = "Unable to proceed, user must join a voice channel first!"
@@ -55,6 +59,7 @@ function initVoiceSongData(guildId, voiceChannel, textChannelId) {
             connection: null,
             player: null,
             meta: {
+                current: null,
                 isInitial: true,
                 isSkipped: false
             }
@@ -119,6 +124,21 @@ function handleSongSkip(guildId) {
     }
 
     return "Failed to skip current playing song!"
+}
+
+async function handleSongLyrics(guildId) {
+    const data = voiceSongData.find(guild => guild.id === guildId);
+    if (data && data.meta.current && data.player.state.status === AudioPlayerStatus.Playing) {
+        const response = await geniusClient.songs.search(data.meta.current);
+        if (response[0]) {
+            const lyrics = await response[0].lyrics();
+            return `Found lyrics of ${response[0].fullTitle} provided by Genius.\n\`\`\`${lyrics}\`\`\``;
+        } else {
+            return `Couldn't provide the lyrics for ${data.meta.current}!`;
+        }
+    }
+
+    return "There are no songs playing!";
 }
 
 
@@ -186,6 +206,7 @@ async function playVoice(voiceChannel) {
 
                 data.meta.isInitial = false;
                 data.meta.isSkipped = false;
+                data.meta.current = nextTrack.name;
                 data.player.once(AudioPlayerStatus.Idle, resolve);
                 data.player.once('error', reject);
             });

@@ -17,7 +17,7 @@ export async function handleHelloHanni(message) {
         );
 
         const answer = await handleConversation(conversation);
-        await pushConversationMessage(message.channel.id, "Hanni", AI_CONVERSATION_ROLE.assistant, answer);
+        await pushConversationMessage(message.channel.id, AI_CONVERSATION_ROLE.assistant, AI_CONVERSATION_ROLE.assistant, answer);
         
         await handleAnswer(answer, message);
     } catch (error) {
@@ -31,14 +31,14 @@ export async function handleHelloHanniFromSystem(content, channelId, needReply =
         
         await pushConversationMessage(
             channelId, 
-            "System", 
+            AI_CONVERSATION_ROLE.system,
             AI_CONVERSATION_ROLE.system, 
             `${content}`
         );
 
         if (needReply) {
             const answer = await handleConversation(conversation);
-            await pushConversationMessage(channelId, "Hanni", AI_CONVERSATION_ROLE.assistant, answer);
+            await pushConversationMessage(channelId, AI_CONVERSATION_ROLE.assistant, AI_CONVERSATION_ROLE.assistant, answer);
             handleSend(channelId, answer);
         }
     } catch (error) {
@@ -64,13 +64,18 @@ async function handleCommandResponse(response, message) {
 
     await pushConversationMessage(
         message.channel.id, 
-        "System", 
+        AI_CONVERSATION_ROLE.system, 
         AI_CONVERSATION_ROLE.system, 
         response
     );
 
     const commandAnswer = await handleConversation(conversation);
-    await pushConversationMessage(message.channel.id, "Hanni", AI_CONVERSATION_ROLE.assistant, commandAnswer);
+    await pushConversationMessage(
+        message.channel.id, 
+        AI_CONVERSATION_ROLE.assistant, 
+        AI_CONVERSATION_ROLE.assistant, 
+        commandAnswer
+    );
     handleReply(message, commandAnswer);
 }
 
