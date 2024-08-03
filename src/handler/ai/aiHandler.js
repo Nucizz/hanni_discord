@@ -16,8 +16,8 @@ const AI_MODEL = {
 
 
 // MARK: Settings
-const primaryModel = AI_MODEL.gemini
-const secondaryModel = AI_MODEL.groq
+const primaryModel = AI_MODEL.groq
+const secondaryModel = AI_MODEL.gemini
 
 
 // MARK: Handler

@@ -4,7 +4,7 @@ import { downloadTrack, downloadAlbum, } from '@nechlophomeriaa/spotifydl';
 import { joinVoiceChannel, VoiceConnectionStatus, entersState, createAudioPlayer, createAudioResource, AudioPlayerStatus } from '@discordjs/voice';
 import { log } from "../../helper/loggerHelper.js";
 import { handleHelloHanniFromSystem } from "../messages/helloHanniHandler.js";
-import { geniusClient } from "../../api/genius/geniusConfig.js";
+import { getLyrics } from "../../api/genius/geniusRepository.js";
 
 
 // MARK: Variable
@@ -129,13 +129,7 @@ function handleSongSkip(guildId) {
 async function handleSongLyrics(guildId) {
     const data = voiceSongData.find(guild => guild.id === guildId);
     if (data && data.meta.current && data.player.state.status === AudioPlayerStatus.Playing) {
-        const response = await geniusClient.songs.search(data.meta.current);
-        if (response[0]) {
-            const lyrics = await response[0].lyrics();
-            return `Found lyrics of ${response[0].fullTitle} provided by Genius.\n\`\`\`${lyrics}\`\`\``;
-        } else {
-            return `Couldn't provide the lyrics for ${data.meta.current}!`;
-        }
+        return await getLyrics(data.meta.current) ?? `Couldn't find lyrics for ${data.meta.current}`;
     }
 
     return "There are no songs playing!";
