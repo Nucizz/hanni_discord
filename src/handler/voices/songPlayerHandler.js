@@ -171,7 +171,7 @@ async function playVoice(voiceChannel) {
     data.connection.subscribe(data.player);
 
     const playNextSong = async () => {
-        if (data.queueList.length === 0 && !data.meta.isLoading) {
+        if (data.queueList.length === 0 && !data.meta.isLoading && !data.meta.isInitial) {
             handleHelloHanniFromSystem("Finished playing the song/queue.", data.textChannelId);
             log(["MUSIC", "VOICE"], "Finished playing the song/queue.");
             data.connection.destroy();
@@ -266,8 +266,9 @@ async function fetchAudioByQuery(query) {
 
 async function generateYoutubeAudio(url) {
     log(["VOICE", "MUSIC", "YOUTUBE"], `Fetching song ${url} from Youtube`);
+    const videoInformation = await ytdl.getBasicInfo(url);
     return {
-        name: await ytdl.getBasicInfo(url).title,
+        name: `${videoInformation.videoDetails.title} by ${videoInformation.videoDetails.author.name}`,
         buffer: ytdl(url, {
             filter: "audioonly",
             quality: "lowestaudio"
