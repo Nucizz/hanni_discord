@@ -60,6 +60,7 @@ function initVoiceSongData(guildId, voiceChannel, textChannelId) {
             player: null,
             meta: {
                 current: null,
+                isLoading: true,
                 isInitial: true,
                 isSkipped: false
             }
@@ -74,10 +75,12 @@ function popVoiceSongData(guildId) {
 async function handleSongPlay(query, voiceChannel) {
     const data = voiceSongData.find(guild => guild.id === voiceChannel.guild.id);
     if (data) {
+        data.meta.isLoading = true;
         const response = await fetchAudioByQuery(query);
         if (response.audioStreams.length > 0) {
             data.queueList = [...response.audioStreams];
             data.meta.isInitial = true;
+            data.meta.isLoading = false;
             playVoice(voiceChannel);
             return `Successfully played **${response.fixedQuery}** to voice channel now!`;
         }
@@ -89,9 +92,11 @@ async function handleSongPlay(query, voiceChannel) {
 async function handleSongQueue(query, voiceChannel) {
     const data = voiceSongData.find(guild => guild.id === voiceChannel.guild.id);
     if (data) {
+        data.meta.isLoading = true;
         const response = await fetchAudioByQuery(query);
         if (response.audioStreams.length > 0) {
             data.queueList = [...data.queueList, ...response.audioStreams];
+            data.meta.isLoading = false;
 
             if (!data.player) playVoice(voiceChannel);
             return `Successfully added **${response.fixedQuery}** to queue list!`;
@@ -166,7 +171,7 @@ async function playVoice(voiceChannel) {
     data.connection.subscribe(data.player);
 
     const playNextSong = async () => {
-        if (data.queueList.length === 0) {
+        if (data.queueList.length === 0 && !data.meta.isLoading) {
             handleHelloHanniFromSystem("Finished playing the song/queue.", data.textChannelId);
             log(["MUSIC", "VOICE"], "Finished playing the song/queue.");
             data.connection.destroy();
