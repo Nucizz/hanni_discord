@@ -1,6 +1,7 @@
 import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { handleSongPlayerCommand } from "../voices/songPlayerHandler.js";
 import { Community } from "../../constants/remoteConfig.js";
+import { DISCORD_MAX_LENGTH, handleSend } from "../common/messageHandler.js";
 
 export const songPlayerControlCommands = [
     {
@@ -82,7 +83,13 @@ export const songPlayerControlCommands = [
 
             await interaction.reply({ content: `Finding lyrics...`, ephemeral: false });
             const response = await handleSongPlayerCommand("lyrics", interaction);
-            await interaction.editReply({ content: response, ephemeral: false });
+
+            if (response.length < DISCORD_MAX_LENGTH) {
+                await interaction.editReply({ content: response, ephemeral: false });
+            } else {
+                await interaction.deleteReply();
+                handleSend(interaction.channel.id, response);
+            }
         }
     },
 ]

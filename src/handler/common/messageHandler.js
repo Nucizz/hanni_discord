@@ -2,7 +2,7 @@ import { discordClient } from "../../api/discord/discordConfig.js";
 
 
 // MARK: Static
-const DISCORD_MAX_LENGTH = 2000
+export const DISCORD_MAX_LENGTH = 2000
 
 
 // MARK: Handler

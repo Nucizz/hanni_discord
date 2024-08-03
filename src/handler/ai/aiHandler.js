@@ -35,7 +35,7 @@ export async function handleConversation(conversation) {
             return await secondaryModel(conversation);
         } catch (secondaryError) {
             log(["AI", "MODEL", "CONVERSATION"], `Secondary model failed: ${secondaryError}`, true);
-            return `***Ouch, please fix this error:*** \n**Primary:**\`\`\`json\n${primaryError}\`\`\`\n**Secondary:**\`\`\`json\n${secondaryError}\`\`\``;
+            return `***Ouch, please fix this error:***\n**Primary:**\`\`\`json\n${primaryError}\`\`\`**Secondary:**\`\`\`json\n${secondaryError}\`\`\``;
         }
     }
 }

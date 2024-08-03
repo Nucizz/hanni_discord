@@ -13,6 +13,11 @@ export async function sendGeminiChat(conversation) {
     }
 }
 
+export async function sendGeminiPrompt(prompt) {
+    const result = await geminiClient.generateContent(prompt);
+    return result.response.text();
+}
+
 async function getGeminiCompletion(conversation) {
     const prompt = convertConversationToGeminiResponse(conversation)
     const result = await geminiClient.generateContent(prompt);
